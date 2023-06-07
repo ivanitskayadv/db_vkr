@@ -57,9 +57,41 @@ CREATE TABLE tbl_warehouse (
   town VARCHAR(20) NULL
 ) TABLESPACE ts_wh_new;
 
+ALTER TABLE public.tbl_warehouse
+  ADD CONSTRAINT PK_WAREHOUSE$ID_WH
+  PRIMARY KEY(ID_WH)
+  USING INDEX
+  TABLESPACE TS_WH_NEW_I;
+
 CREATE INDEX fk_operation$id_agent ON tbl_operation USING btree (id_ag) TABLESPACE TS_WH_NEW_I;
 CREATE INDEX fk_operation$id_goods ON tbl_operation USING btree (id_goods) TABLESPACE TS_WH_NEW_I;
 CREATE INDEX fk_operation$id_wh ON tbl_operation USING btree (id_wh) TABLESPACE TS_WH_NEW_I;
+
+ALTER TABLE public.tbl_goods_wh
+  ADD CONSTRAINT fk_goods_wh$id_goods
+  FOREIGN KEY(ID_GOODS)
+  REFERENCES TBL_GOODS(ID_GOODS) ON UPDATE CASCADE;
+  
+ALTER TABLE public.tbl_goods_wh
+  ADD CONSTRAINT fk_goods_wh$id_wh
+  FOREIGN KEY(ID_WH)
+  REFERENCES TBL_WAREHOUSE(ID_WH) ON UPDATE CASCADE;
+  
+ALTER TABLE public.tbl_operation
+  ADD CONSTRAINT fk_operation$id_wh
+  FOREIGN KEY(ID_WH)
+  REFERENCES TBL_WAREHOUSE(ID_WH) ON UPDATE CASCADE;
+  
+ALTER TABLE public.tbl_operation
+  ADD CONSTRAINT fk_operation$id_goods
+  FOREIGN KEY(ID_GOODS)
+  REFERENCES TBL_GOODS(ID_GOODS) ON UPDATE CASCADE;
+  
+ALTER TABLE public.tbl_operation
+  ADD CONSTRAINT fk_operation$id_ag
+  FOREIGN KEY(ID_AG)
+  REFERENCES TBL_AGENT(ID_AG) ON UPDATE CASCADE;
+  
 --
 
 CREATE SEQUENCE seq_id_ag
