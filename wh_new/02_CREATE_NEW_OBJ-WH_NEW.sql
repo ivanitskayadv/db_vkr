@@ -415,7 +415,7 @@ END;
 $function$
 ;
 
-CREATE OR REPLACE FUNCTION fn_gen_date(par_date date DEFAULT NULL::date)
+CREATE OR REPLACE FUNCTION public.fn_gen_date(par_date date DEFAULT NULL::date, par_pos character DEFAULT NULL::character varying)
  RETURNS character varying
  LANGUAGE plpgsql
 AS $function$
@@ -426,16 +426,27 @@ AS $function$
   MONTH_ INT;
   MONTH_2 VARCHAR;
   DAY_ VARCHAR;
+
   BEGIN 
     PAR_YEAR  := (SELECT COALESCE(EXTRACT (YEAR  FROM PAR_DATE), 2023));
     PAR_MONTH := (SELECT COALESCE(EXTRACT (MONTH FROM PAR_DATE), 12));
-    YEAR_     := ROUND(RANDOM()*(PAR_YEAR-2006)+2006);
-    MONTH_    := ROUND(RANDOM()*(PAR_MONTH-1)+1);
+    YEAR_     := CASE 
+                   WHEN UPPER(PAR_POS) = 'A' THEN ROUND(RANDOM()*(2023-PAR_YEAR)+PAR_YEAR)
+                   WHEN UPPER(PAR_POS) = 'B' THEN ROUND(RANDOM()*(PAR_YEAR-2006)+2006)
+                   ELSE ROUND(RANDOM()*(2023-2006)+2006)
+                 END;
+    MONTH_    := CASE 
+                   WHEN UPPER(PAR_POS) = 'A' THEN ROUND(RANDOM()*(12-PAR_MONTH)+PAR_MONTH)
+                   WHEN UPPER(PAR_POS) = 'B' THEN ROUND(RANDOM()*(PAR_MONTH-1)+1)
+                   ELSE ROUND(RANDOM()*(12-1)+1)
+                 END; 
     
     IF (MOD(YEAR_, 4) = 0 AND MONTH_ = 2) THEN
       DAY_ := ROUND(RANDOM()*(SELECT 
                               CASE 
-                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ THEN 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'A' THEN 
+                                  29 - EXTRACT (DAY  FROM PAR_DATE)
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'B' THEN 
                                   EXTRACT (DAY  FROM PAR_DATE) - 1
                                 ELSE 
                                   29-1
@@ -443,7 +454,9 @@ AS $function$
     ELSIF (MONTH_ IN (1, 3, 5, 7, 8, 10, 12)) THEN
       DAY_ := ROUND(RANDOM()*(SELECT 
                               CASE 
-                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ THEN 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'A' THEN 
+                                  31 - EXTRACT (DAY  FROM PAR_DATE) 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'B' THEN 
                                   EXTRACT (DAY  FROM PAR_DATE) - 1
                                 ELSE 
                                   31-1
@@ -451,7 +464,9 @@ AS $function$
     ELSIF (MONTH_ IN (4, 6, 9, 11)) THEN
       DAY_ := ROUND(RANDOM()*(SELECT 
                               CASE 
-                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ THEN 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'A'THEN 
+                                  30 - EXTRACT (DAY  FROM PAR_DATE) 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'B' THEN 
                                   EXTRACT (DAY  FROM PAR_DATE) - 1
                                 ELSE 
                                   30-1
@@ -459,7 +474,9 @@ AS $function$
     ELSE 
       DAY_ := ROUND(RANDOM()*(SELECT 
                               CASE 
-                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ THEN 
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'A' THEN 
+                                  28 - EXTRACT (DAY  FROM PAR_DATE)
+                                WHEN PAR_YEAR = YEAR_ AND PAR_MONTH = MONTH_ AND UPPER(PAR_POS) = 'B' THEN 
                                   EXTRACT (DAY  FROM PAR_DATE) - 1
                                 ELSE 
                                   28-1
@@ -476,6 +493,7 @@ AS $function$
   END;
 $function$
 ;
+
 
 CREATE OR REPLACE FUNCTION fn_gen_phone()
  RETURNS character varying
